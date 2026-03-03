@@ -1,4 +1,10 @@
-const Ellipse = () => {
+"use client";
+
+import { ComponentProps, FC } from "react";
+
+import { cn } from "@/lib/utils";
+
+const Ellipse: FC<ComponentProps<"svg">> = ({ className }) => {
   return (
     <svg
       width="11"
@@ -6,7 +12,7 @@ const Ellipse = () => {
       viewBox="0 0 11 3"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="fill-slate-lighter"
+      className={cn("fill-slate-lighter", className)}
     >
       <ellipse
         cx="1.5"

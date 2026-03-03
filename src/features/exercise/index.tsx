@@ -5,6 +5,7 @@ import {
   ElementType,
   FC,
   createContext,
+  useCallback,
   useContext,
   useState,
 } from "react";
@@ -12,15 +13,34 @@ import {
 import Plus from "@/components/icons/plus";
 import { cn } from "@/lib/utils";
 import { Exercise } from "@/types/calendar";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type ExerciseRootContext = {
   exercises: Exercise[];
   setExercises: (exercises: Exercise[]) => void;
+  onExercisesChange?: (exercises: Exercise[]) => void;
 };
 
 const ExerciseContext = createContext<ExerciseRootContext>({
   exercises: [],
   setExercises: () => {},
+  onExercisesChange: undefined,
 });
 
 export const useExercise = () => {
@@ -33,14 +53,31 @@ export const useExercise = () => {
 
 type ExerciseRootProps = {
   exercises: Exercise[];
+  onExercisesChange?: (exercises: Exercise[]) => void;
 } & ComponentProps<ElementType>;
 
-const ExerciseRoot: FC<ExerciseRootProps> = ({ exercises, children }) => {
+const ExerciseRoot: FC<ExerciseRootProps> = ({
+  exercises,
+  onExercisesChange,
+  children,
+}) => {
   const [exercisesState, setExercisesState] = useState<Exercise[]>(exercises);
+
+  const setExercises = useCallback(
+    (next: Exercise[] | ((prev: Exercise[]) => Exercise[])) => {
+      setExercisesState((prev) => {
+        const nextList = typeof next === "function" ? next(prev) : next;
+        onExercisesChange?.(nextList);
+        return nextList;
+      });
+    },
+    [onExercisesChange],
+  );
 
   const value: ExerciseRootContext = {
     exercises: exercisesState,
-    setExercises: setExercisesState,
+    setExercises,
+    onExercisesChange,
   };
 
   return (
@@ -51,15 +88,44 @@ const ExerciseRoot: FC<ExerciseRootProps> = ({ exercises, children }) => {
 };
 
 const ExerciseCard: FC<{ exercise: Exercise }> = ({ exercise }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: exercise.id });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+  };
+
   return (
-    <div className="border rounded-[6px] border-gray-border-light/15 p-2 pb-2">
-      <ExerciseCardHeader as="h3">{exercise.name}</ExerciseCardHeader>
-      <ExerciseCardContent>
-        <div className="font-semibold text-xs">{exercise.setCount}x</div>
-        <div className="text-slate-light text-xs font-light line-clamp-1">
-          {exercise.setInfo.join(", ")}
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "border rounded-[6px] border-gray-border-light/15 p-2 pb-2 hover:bg-gray-light",
+        isDragging && "opacity-50 shadow-md z-10",
+      )}
+      {...attributes}
+    >
+      <div
+        className="flex items-center gap-1 cursor-grab active:cursor-grabbing touch-none"
+        {...listeners}
+      >
+        <div className="flex-1 min-w-0">
+          <ExerciseCardHeader as="h3">{exercise.name}</ExerciseCardHeader>
+          <ExerciseCardContent>
+            <div className="font-semibold text-xs">{exercise.setCount}x</div>
+            <div className="text-slate-light text-xs font-light line-clamp-1">
+              {exercise.setInfo.join(", ")}
+            </div>
+          </ExerciseCardContent>
         </div>
-      </ExerciseCardContent>
+      </div>
     </div>
   );
 };
@@ -115,18 +181,49 @@ const ExerciseList: FC<ExerciseListEmptyProps> = ({
   className,
   ...props
 }) => {
-  const { exercises } = useExercise();
+  const { exercises, setExercises } = useExercise();
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIndex = exercises.findIndex((e) => e.id === active.id);
+      const newIndex = exercises.findIndex((e) => e.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      setExercises(arrayMove(exercises, oldIndex, newIndex));
+    },
+    [exercises, setExercises],
+  );
 
   if (exercises.length === 0) {
     return empty ?? <ExerciseListEmpty />;
   }
 
   return (
-    <div className={cn("flex flex-col gap-2", className)} {...props}>
-      {exercises.map((exercise) => (
-        <ExerciseCard exercise={exercise} key={exercise.id} />
-      ))}
-    </div>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={exercises.map((e) => e.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className={cn("flex flex-col gap-2", className)} {...props}>
+          {exercises.map((exercise) => (
+            <ExerciseCard exercise={exercise} key={exercise.id} />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 };
 

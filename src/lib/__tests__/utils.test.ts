@@ -1,10 +1,11 @@
-import { add } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 describe("utils", () => {
-  describe("add", () => {
-    it("returns the sum of two numbers", () => {
-      expect(add(1, 2)).toBe(3);
-      expect(add(-1, 1)).toBe(0);
+  describe("cn", () => {
+    it("returns the combined class names", () => {
+      expect(cn("foo", "bar")).toBe("foo bar");
+      expect(cn("foo", "bar", "baz")).toBe("foo bar baz");
+      expect(cn("foo", "bar", "baz", "qux")).toBe("foo bar baz qux");
     });
   });
 });

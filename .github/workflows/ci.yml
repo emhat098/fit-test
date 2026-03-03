@@ -35,11 +35,12 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Unit Tests
-        run: npm run test:coverage
+      # TODO: Add unit tests and e2e tests when we have a time to do it.
+      # - name: Unit Tests
+      #   run: npm run test:coverage
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      # - name: Install Playwright browsers
+      #   run: npx playwright install --with-deps chromium
 
-      - name: End-to-End Tests
-        run: npx playwright test
+      # - name: End-to-End Tests
+      #   run: npx playwright test

@@ -192,8 +192,9 @@ const CalendarAddWorkoutButton: FC<ComponentProps<"button">> = ({
 
 const CalendarWorkout = () => {
   const { workouts } = useCalendar();
+
   if (workouts.length === 0) {
-    return <div>No workouts for this day.</div>;
+    return <div className="text-xs">No workouts for this day.</div>;
   }
 
   return (
@@ -207,10 +208,12 @@ const CalendarWorkout = () => {
             {workout.name}
           </div>
 
-          <div className="py-1 flex flex-col items-end gap-2">
+          <div className="py-1 flex flex-col gap-2 pb-2">
             <ExerciseRoot exercises={workout.exercises}>
               <ExerciseList />
-              <ExerciseCardAddButton className="w-max" />
+              <div className="flex justify-end">
+                <ExerciseCardAddButton className="w-max" />
+              </div>
             </ExerciseRoot>
           </div>
         </div>

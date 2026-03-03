@@ -106,20 +106,32 @@ const ExerciseCardHeader = ({
   );
 };
 
-const ExerciseList = () => {
+type ExerciseListEmptyProps = {
+  empty?: React.ReactNode;
+} & ComponentProps<"div">;
+
+const ExerciseList: FC<ExerciseListEmptyProps> = ({
+  empty,
+  className,
+  ...props
+}) => {
   const { exercises } = useExercise();
 
   if (exercises.length === 0) {
-    return <div>No exercises for this workout.</div>;
+    return empty ?? <ExerciseListEmpty />;
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn("flex flex-col gap-2", className)} {...props}>
       {exercises.map((exercise) => (
         <ExerciseCard exercise={exercise} key={exercise.id} />
       ))}
     </div>
   );
+};
+
+const ExerciseListEmpty = () => {
+  return <div className="text-xs">No exercises for this workout.</div>;
 };
 
 const ExerciseCardAddButton = ({

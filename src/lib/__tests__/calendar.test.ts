@@ -45,7 +45,6 @@ describe("calendar", () => {
     it("uses current date when no reference is passed", () => {
       const before = new Date();
       const days = getCurrentWeekDays();
-      const after = new Date();
       expect(days).toHaveLength(7);
       expect(days[0].getDay()).toBe(0);
       expect(days[6].getDay()).toBe(6);

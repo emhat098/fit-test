@@ -45,7 +45,7 @@ const getWeekSchedule = cache(async (userId: string, currentDate: Date) => {
             },
             {
               id: "2",
-              name: "Bench Press Medium Grip",
+              name: "Incline Bench Press",
               setInfo: ["60 lb x 5", "70 lb x 5", "80 lb x 5"],
               setCount: 3,
             },
@@ -59,14 +59,17 @@ const getWeekSchedule = cache(async (userId: string, currentDate: Date) => {
 const Calendar = async ({ userId }: { userId: string }) => {
   "use cache";
   cacheLife("weeks");
-  cacheTag(`calendar:${userId}`);
+  cacheTag("calendar");
 
   const weekScheduleData = await getWeekSchedule(userId, new Date());
+
+  const dayKey = (day: Date) =>
+    `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
 
   return (
     <div className="grid grid-cols-7 gap-4 h-full">
       {weekScheduleData.map((c) => (
-        <CalendarRoot day={c.day} workouts={c.workouts} key={c.day.toString()}>
+        <CalendarRoot day={c.day} workouts={c.workouts} key={dayKey(c.day)}>
           <CalendarCard>
             <CalendarHeader />
             <CalendarContent>

@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import Plus from "@/components/icons/plus";
+
 export default function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -12,6 +14,7 @@ export default function Home() {
           height={38}
           priority
         />
+        <Plus />
         <ol className=" list-inside list-decimal text-sm/6 text-center sm:text-left">
           <li className="mb-2 tracking-[-.01em]">
             Get started by editing{" "}
